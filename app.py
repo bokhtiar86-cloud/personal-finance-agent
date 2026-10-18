@@ -294,7 +294,7 @@ with ai:
         <div class="robot-head"><div class="robot-face"><span class="robot-eye"></span><span class="robot-eye"></span></div></div>
         <div class="robot-body"></div><div class="robot-arm"></div>
       </div>
-      <div class="robot-copy">Hi! I'm your Team 7 robot 🤖<small>আমি হালকা নড়াচড়া করি—আপনার আয়-ব্যয় নিয়ে প্রশ্ন করুন নিচে।</small></div>
+      <div class="robot-copy">Hi! I'm your Team 7 robot 🤖<small>আমি স্বাধীন বোকাচোদার এআই সংস্করণ—আপনার আয়-ব্যয় নিয়ে প্রশ্ন করুন নিচে।</small></div>
     </div>
     """, unsafe_allow_html=True)
     st.subheader("💬 Ask Team 7")
