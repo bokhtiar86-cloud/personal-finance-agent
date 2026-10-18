@@ -21,6 +21,22 @@ st.set_page_config(page_title="Team 7 | Personal Finance", page_icon="💹", lay
 st.markdown("""
 <style>
 .stApp {background: radial-gradient(circle at 10% 0%, #12342f 0, transparent 28%), linear-gradient(135deg,#07111f,#0b1424 55%,#0a1020); color:#e5edf7}
+/* Gentle motion effects: no extra packages required */
+@keyframes team7FadeUp { from {opacity:0; transform:translateY(14px)} to {opacity:1; transform:translateY(0)} }
+@keyframes team7Glow { 0%,100% {box-shadow:0 0 0 rgba(52,211,153,0)} 50% {box-shadow:0 0 22px rgba(52,211,153,.12)} }
+@keyframes team7Shimmer { 0% {background-position:0% 50%} 100% {background-position:200% 50%} }
+.hero {animation:team7FadeUp .65s ease-out both, team7Glow 5s ease-in-out 1s infinite}
+.metric {animation:team7FadeUp .55s ease-out both; transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+div[data-testid="column"]:nth-child(1) .metric {animation-delay:.06s}
+div[data-testid="column"]:nth-child(2) .metric {animation-delay:.14s}
+div[data-testid="column"]:nth-child(3) .metric {animation-delay:.22s}
+div[data-testid="column"]:nth-child(4) .metric {animation-delay:.30s}
+.metric:hover {transform:translateY(-4px);border-color:#34d399;box-shadow:0 10px 28px rgba(0,0,0,.18)}
+.stButton>button,.stDownloadButton>button {transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.stButton>button:hover,.stDownloadButton>button:hover {transform:translateY(-2px);box-shadow:0 7px 18px rgba(52,211,153,.18);border-color:#34d399}
+[data-testid="stTabs"] button {transition:color .18s ease,background-color .18s ease}
+[data-testid="stAlert"],div[data-testid="stForm"],div[data-testid="stChatMessage"] {animation:team7FadeUp .35s ease-out both}
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after {animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important} }
 [data-testid="stSidebar"]{background:#091525;border-right:1px solid #26374a}
 .block-container{max-width:1450px;padding-top:1.5rem}
 .hero{padding:1.5rem;border:1px solid #294154;border-radius:22px;background:linear-gradient(110deg,#10362f,#13243a 65%,#102033);margin-bottom:1rem}
