@@ -25,6 +25,21 @@ st.markdown("""
 @keyframes team7FadeUp { from {opacity:0; transform:translateY(14px)} to {opacity:1; transform:translateY(0)} }
 @keyframes team7Glow { 0%,100% {box-shadow:0 0 0 rgba(52,211,153,0)} 50% {box-shadow:0 0 22px rgba(52,211,153,.12)} }
 @keyframes team7Shimmer { 0% {background-position:0% 50%} 100% {background-position:200% 50%} }
+@keyframes robotFloat { 0%,100% {transform:translateY(0) rotate(-1deg)} 50% {transform:translateY(-8px) rotate(1deg)} }
+@keyframes robotWave { 0%,100% {transform:rotate(8deg)} 50% {transform:rotate(-18deg)} }
+@keyframes robotBlink { 0%,45%,50%,100% {transform:scaleY(1)} 47% {transform:scaleY(.12)} }
+.team7-robot-wrap {display:flex;align-items:center;gap:18px;padding:16px 20px;margin:8px 0 14px;border:1px solid #2b5260;border-radius:20px;background:linear-gradient(110deg,rgba(15,54,62,.9),rgba(17,34,54,.92));}
+.team7-robot {position:relative;width:90px;height:96px;flex:0 0 90px;animation:robotFloat 3.2s ease-in-out infinite;}
+.robot-antenna {position:absolute;left:43px;top:0;width:4px;height:15px;background:#9caec2;border-radius:4px}
+.robot-antenna:before {content:'';position:absolute;left:-4px;top:-5px;width:12px;height:12px;border-radius:50%;background:#34d399;box-shadow:0 0 10px #34d399}
+.robot-head {position:absolute;left:9px;top:14px;width:72px;height:52px;border:3px solid #9aabbc;border-radius:17px 17px 14px 14px;background:linear-gradient(145deg,#e4b65c,#b9792d);box-shadow:inset 0 -5px 0 rgba(80,45,14,.16)}
+.robot-face {position:absolute;left:8px;top:8px;width:50px;height:29px;border-radius:10px;background:#122435;display:flex;align-items:center;justify-content:center;gap:13px}
+.robot-eye {width:10px;height:13px;border-radius:50%;background:#61f4d0;box-shadow:0 0 8px #61f4d0;animation:robotBlink 4.8s infinite}
+.robot-body {position:absolute;left:21px;top:69px;width:48px;height:25px;border:3px solid #9aabbc;border-radius:10px;background:#d79a43}
+.robot-body:after {content:'★';position:absolute;left:15px;top:1px;color:#173447;font-size:13px}
+.robot-arm {position:absolute;right:-2px;top:68px;width:19px;height:7px;border-radius:6px;background:#d79a43;transform-origin:3px 4px;animation:robotWave 1.8s ease-in-out infinite}
+.robot-copy {color:#e5edf7;font-size:1rem;font-weight:700}.robot-copy small {display:block;color:#a9c3d0;font-size:.84rem;font-weight:400;margin-top:4px}
+@media (prefers-reduced-motion: reduce) {.team7-robot,.robot-arm,.robot-eye {animation:none !important}}
 .hero {animation:team7FadeUp .65s ease-out both, team7Glow 5s ease-in-out 1s infinite}
 .metric {animation:team7FadeUp .55s ease-out both; transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
 div[data-testid="column"]:nth-child(1) .metric {animation-delay:.06s}
@@ -272,6 +287,16 @@ with ai:
     else: st.info("AI insight তৈরি করতে বাটনে চাপুন।")
 
     st.divider()
+    st.markdown("""
+    <div class="team7-robot-wrap">
+      <div class="team7-robot" aria-label="Animated Team 7 robot">
+        <div class="robot-antenna"></div>
+        <div class="robot-head"><div class="robot-face"><span class="robot-eye"></span><span class="robot-eye"></span></div></div>
+        <div class="robot-body"></div><div class="robot-arm"></div>
+      </div>
+      <div class="robot-copy">Hi! I'm your Team 7 robot 🤖<small>আমি হালকা নড়াচড়া করি—আপনার আয়-ব্যয় নিয়ে প্রশ্ন করুন নিচে।</small></div>
+    </div>
+    """, unsafe_allow_html=True)
     st.subheader("💬 Ask Team 7")
     st.write("আপনার আয়-ব্যয় সম্পর্কে নিজের মতো প্রশ্ন লিখুন। যেমন: আমার বাজেট কত বাকি? বা কোন খাতে খরচ বেশি?")
     st.caption("গোপনীয়তা: চ্যাটে শুধু নির্বাচিত মাসের মোট আয়, মোট খরচ, বাজেট ও category totals পাঠানো হয়। লেনদেনের বিবরণ পাঠানো হয় না।")
