@@ -16,7 +16,7 @@ try:
 except Exception:
     genai = None
 
-st.set_page_config(page_title="Finora | Personal Finance", page_icon="💹", layout="wide")
+st.set_page_config(page_title="Team 7 | Personal Finance", page_icon="💹", layout="wide")
 
 st.markdown("""
 <style>
@@ -135,7 +135,7 @@ def ai_chat_answer(df, budget, month, question, history):
     conversation = "\n".join(
         f"{item['role'].upper()}: {item['content']}" for item in history[-8:]
     )
-    prompt = f"""You are Finora, a careful personal finance coach. Answer the user's question in clear, simple language. Use only the financial facts below; never invent transactions or numbers. If the data cannot answer a question, say so. Currency is Bangladeshi taka (BDT). Give general information, not professional financial advice.
+    prompt = f"""You are Team 7, a careful personal finance coach. Answer the user's question in clear, simple language. Use only the financial facts below; never invent transactions or numbers. If the data cannot answer a question, say so. Currency is Bangladeshi taka (BDT). Give general information, not professional financial advice.
 
 Financial facts: {context}
 
@@ -156,7 +156,7 @@ if "insights" not in st.session_state: st.session_state.insights=""
 if "chat_messages" not in st.session_state: st.session_state.chat_messages=[]
 
 with st.sidebar:
-    st.markdown("## 💹 Finora")
+    st.markdown("## 💹 Team 7")
     st.caption("PERSONAL FINANCE AGENT")
     chosen=st.date_input("মাস নির্বাচন করুন",value=date.today().replace(day=1))
     month=chosen.strftime("%Y-%m")
@@ -258,7 +258,7 @@ with ai:
     else: st.info("AI insight তৈরি করতে বাটনে চাপুন।")
 
     st.divider()
-    st.subheader("💬 Ask Finora")
+    st.subheader("💬 Ask Team 7")
     st.write("আপনার আয়-ব্যয় সম্পর্কে নিজের মতো প্রশ্ন লিখুন। যেমন: আমার বাজেট কত বাকি? বা কোন খাতে খরচ বেশি?")
     st.caption("গোপনীয়তা: চ্যাটে শুধু নির্বাচিত মাসের মোট আয়, মোট খরচ, বাজেট ও category totals পাঠানো হয়। লেনদেনের বিবরণ পাঠানো হয় না।")
     for message in st.session_state.chat_messages:
@@ -270,7 +270,7 @@ with ai:
         with st.chat_message("user"):
             st.markdown(question)
         with st.chat_message("assistant"):
-            with st.spinner("Finora উত্তর তৈরি করছে..."):
+            with st.spinner("Team 7 উত্তর তৈরি করছে..."):
                 answer = ai_chat_answer(alltx, budget, month, question, st.session_state.chat_messages[:-1])
             st.markdown(answer)
         st.session_state.chat_messages.append({"role": "assistant", "content": answer})
@@ -301,4 +301,4 @@ with csvtab:
         except Exception as e: st.error(f"CSV পড়তে সমস্যা: {e}")
 
 st.divider()
-st.caption("Finora · Personal Finance Agent · Streamlit + Gemini")
+st.caption("Team 7 · Personal Finance Agent · Streamlit + Gemini")
