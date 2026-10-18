@@ -72,6 +72,23 @@ def api_key():
         pass
     return os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
+def generate_with_fallback(client, prompt):
+    """Try a few currently listed text models if one is temporarily unavailable."""
+    models = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash"]
+    errors = []
+    for model_name in models:
+        try:
+            result = client.models.generate_content(model=model_name, contents=prompt)
+            if result.text:
+                return result.text
+            errors.append(f"{model_name}: empty response")
+        except Exception as exc:
+            errors.append(f"{model_name}: {exc}")
+    # Avoid dumping long technical traces into the app UI.
+    return ("Gemini এখন কোনো মডেল থেকেই উত্তর দিতে পারেনি। কিছুক্ষণ পর আবার চেষ্টা করুন। "
+            "যদি বারবার হয়, Google AI Studio-তে API key ও model access পরীক্ষা করুন. "
+            "শেষ ত্রুটি: " + errors[-1][:350])
+
 def ai_insights(df,budget,month):
     key=api_key()
     if not key:
@@ -88,8 +105,7 @@ def ai_insights(df,budget,month):
     prompt=f"""Act as a careful personal finance coach. In simple English, summarize the user's monthly finances and give 3 practical actions. Currency BDT. Month: {month}; income: {inc}; expenses: {exp}; net cash flow: {inc-exp}; expense budget: {budget}; expense categories: {cats}. Use only these aggregates, do not invent data, and note this is general information, not professional financial advice."""
     try:
         client=genai.Client(api_key=key)
-        result=client.models.generate_content(model="gemini-3.8-flash",contents=prompt)
-        return result.text or "AI কোনো লেখা ফেরত দেয়নি।"
+        return generate_with_fallback(client, prompt)
     except Exception as e:
         return f"Gemini request ব্যর্থ: {e}. API key, model access ও quota পরীক্ষা করুন।"
 
@@ -129,8 +145,7 @@ Recent conversation:
 USER'S NEW QUESTION: {question}"""
     try:
         client = genai.Client(api_key=key)
-        result = client.models.generate_content(model="gemini-3.8-flash", contents=prompt)
-        return result.text or "AI কোনো উত্তর ফেরত দেয়নি। আবার চেষ্টা করুন।"
+        return generate_with_fallback(client, prompt)
     except Exception as e:
         return f"Gemini request ব্যর্থ: {e}. কিছুক্ষণ পর আবার চেষ্টা করুন এবং API key/model access পরীক্ষা করুন।"
 
