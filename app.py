@@ -93,10 +93,52 @@ def ai_insights(df,budget,month):
     except Exception as e:
         return f"Gemini request ব্যর্থ: {e}. API key, model access ও quota পরীক্ষা করুন।"
 
+def ai_chat_answer(df, budget, month, question, history):
+    """Answer a user's question using only the selected month's financial totals."""
+    key = api_key()
+    if not key:
+        return "API key পাওয়া যায়নি। Streamlit Cloud → Settings → Secrets-এ GEMINI_API_KEY যোগ করুন।"
+    if genai is None:
+        return "google-genai প্যাকেজ ইনস্টল নেই। requirements.txt পরীক্ষা করুন।"
+
+    x = df.copy()
+    if not x.empty:
+        x["date"] = pd.to_datetime(x["date"], errors="coerce")
+        x = x[x["date"].dt.strftime("%Y-%m") == month]
+    income = float(x.loc[x.type == "Income", "amount"].sum()) if not x.empty else 0
+    expenses = float(x.loc[x.type == "Expense", "amount"].sum()) if not x.empty else 0
+    categories = (x[x.type == "Expense"].groupby("category").amount.sum().sort_values(ascending=False).to_dict()
+                  if not x.empty else {})
+
+    # Send financial totals and category totals only; transaction descriptions are not sent.
+    context = (
+        f"Selected month: {month}; currency: BDT; total income: {income:.2f}; "
+        f"total expenses: {expenses:.2f}; net cash flow: {income-expenses:.2f}; "
+        f"monthly expense budget: {budget:.2f}; expenses by category: {categories}."
+    )
+    conversation = "\n".join(
+        f"{item['role'].upper()}: {item['content']}" for item in history[-8:]
+    )
+    prompt = f"""You are Finora, a careful personal finance coach. Answer the user's question in clear, simple language. Use only the financial facts below; never invent transactions or numbers. If the data cannot answer a question, say so. Currency is Bangladeshi taka (BDT). Give general information, not professional financial advice.
+
+Financial facts: {context}
+
+Recent conversation:
+{conversation}
+
+USER'S NEW QUESTION: {question}"""
+    try:
+        client = genai.Client(api_key=key)
+        result = client.models.generate_content(model="gemini-3.8-flash", contents=prompt)
+        return result.text or "AI কোনো উত্তর ফেরত দেয়নি। আবার চেষ্টা করুন।"
+    except Exception as e:
+        return f"Gemini request ব্যর্থ: {e}. কিছুক্ষণ পর আবার চেষ্টা করুন এবং API key/model access পরীক্ষা করুন।"
+
 if "transactions" not in st.session_state:
     st.session_state.transactions=pd.DataFrame(columns=["date","description","category","type","amount"])
 if "budget" not in st.session_state: st.session_state.budget=15000.0
 if "insights" not in st.session_state: st.session_state.insights=""
+if "chat_messages" not in st.session_state: st.session_state.chat_messages=[]
 
 with st.sidebar:
     st.markdown("## 💹 Finora")
@@ -199,6 +241,27 @@ with ai:
             st.session_state.insights=ai_insights(alltx,budget,month)
     if st.session_state.insights: st.markdown(st.session_state.insights)
     else: st.info("AI insight তৈরি করতে বাটনে চাপুন।")
+
+    st.divider()
+    st.subheader("💬 Ask Finora")
+    st.write("আপনার আয়-ব্যয় সম্পর্কে নিজের মতো প্রশ্ন লিখুন। যেমন: আমার বাজেট কত বাকি? বা কোন খাতে খরচ বেশি?")
+    st.caption("গোপনীয়তা: চ্যাটে শুধু নির্বাচিত মাসের মোট আয়, মোট খরচ, বাজেট ও category totals পাঠানো হয়। লেনদেনের বিবরণ পাঠানো হয় না।")
+    for message in st.session_state.chat_messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+    question = st.chat_input("এখানে আপনার প্রশ্ন লিখুন…")
+    if question:
+        st.session_state.chat_messages.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.markdown(question)
+        with st.chat_message("assistant"):
+            with st.spinner("Finora উত্তর তৈরি করছে..."):
+                answer = ai_chat_answer(alltx, budget, month, question, st.session_state.chat_messages[:-1])
+            st.markdown(answer)
+        st.session_state.chat_messages.append({"role": "assistant", "content": answer})
+    if st.session_state.chat_messages and st.button("চ্যাট মুছে ফেলুন"):
+        st.session_state.chat_messages=[]
+        st.rerun()
     st.caption("এটি সাধারণ তথ্যভিত্তিক সহায়তা; পেশাদার আর্থিক পরামর্শ নয়।")
 
 with csvtab:
