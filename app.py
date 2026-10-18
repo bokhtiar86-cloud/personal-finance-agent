@@ -73,21 +73,19 @@ def api_key():
     return os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
 def generate_with_fallback(client, prompt):
-    """Try a few currently listed text models if one is temporarily unavailable."""
-    models = ["gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash"]
-    errors = []
-    for model_name in models:
-        try:
-            result = client.models.generate_content(model=model_name, contents=prompt)
-            if result.text:
-                return result.text
-            errors.append(f"{model_name}: empty response")
-        except Exception as exc:
-            errors.append(f"{model_name}: {exc}")
-    # Avoid dumping long technical traces into the app UI.
-    return ("Gemini এখন কোনো মডেল থেকেই উত্তর দিতে পারেনি। কিছুক্ষণ পর আবার চেষ্টা করুন। "
-            "যদি বারবার হয়, Google AI Studio-তে API key ও model access পরীক্ষা করুন. "
-            "শেষ ত্রুটি: " + errors[-1][:350])
+    """Use one lightweight model first to avoid slow sequential fallback attempts."""
+    try:
+        result = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=prompt,
+        )
+        return result.text or "AI কোনো লেখা ফেরত দেয়নি। আবার চেষ্টা করুন।"
+    except Exception as exc:
+        return (
+            "Gemini এখন উত্তর দিতে পারেনি। কিছুক্ষণ পর আবার চেষ্টা করুন। "
+            "যদি বারবার হয়, Google AI Studio-তে API key, model access ও quota পরীক্ষা করুন। "
+            f"ত্রুটি: {str(exc)[:250]}"
+        )
 
 def ai_insights(df,budget,month):
     key=api_key()
@@ -102,7 +100,7 @@ def ai_insights(df,budget,month):
     inc=float(x.loc[x.type=="Income","amount"].sum()) if not x.empty else 0
     exp=float(x.loc[x.type=="Expense","amount"].sum()) if not x.empty else 0
     cats=x[x.type=="Expense"].groupby("category").amount.sum().sort_values(ascending=False).head(8).to_dict() if not x.empty else {}
-    prompt=f"""Act as a careful personal finance coach. In simple English, summarize the user's monthly finances and give 3 practical actions. Currency BDT. Month: {month}; income: {inc}; expenses: {exp}; net cash flow: {inc-exp}; expense budget: {budget}; expense categories: {cats}. Use only these aggregates, do not invent data, and note this is general information, not professional financial advice."""
+    prompt=f"""Act as a careful personal finance coach. In simple English, summarize the user's monthly finances and give 3 practical actions. Currency BDT. Month: {month}; income: {inc}; expenses: {exp}; net cash flow: {inc-exp}; expense budget: {budget}; expense categories: {cats}. Use only these aggregates, do not invent data."""
     try:
         client=genai.Client(api_key=key)
         return generate_with_fallback(client, prompt)
@@ -135,7 +133,7 @@ def ai_chat_answer(df, budget, month, question, history):
     conversation = "\n".join(
         f"{item['role'].upper()}: {item['content']}" for item in history[-8:]
     )
-    prompt = f"""You are Team 7, a careful personal finance coach. Answer the user's question in clear, simple language. Use only the financial facts below; never invent transactions or numbers. If the data cannot answer a question, say so. Currency is Bangladeshi taka (BDT). Give general information, not professional financial advice.
+    prompt = f"""You are Team 7, a careful personal finance coach. Answer the user's question in clear, simple language. Use only the financial facts below; never invent transactions or numbers. If the data cannot answer a question, say so. Currency is Bangladeshi taka (BDT).
 
 Financial facts: {context}
 
@@ -277,7 +275,6 @@ with ai:
     if st.session_state.chat_messages and st.button("চ্যাট মুছে ফেলুন"):
         st.session_state.chat_messages=[]
         st.rerun()
-    st.caption("এটি সাধারণ তথ্যভিত্তিক সহায়তা; পেশাদার আর্থিক পরামর্শ নয়।")
 
 with csvtab:
     st.subheader("Import transactions from CSV")
