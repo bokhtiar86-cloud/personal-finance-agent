@@ -88,7 +88,7 @@ def ai_insights(df,budget,month):
     prompt=f"""Act as a careful personal finance coach. In simple English, summarize the user's monthly finances and give 3 practical actions. Currency BDT. Month: {month}; income: {inc}; expenses: {exp}; net cash flow: {inc-exp}; expense budget: {budget}; expense categories: {cats}. Use only these aggregates, do not invent data, and note this is general information, not professional financial advice."""
     try:
         client=genai.Client(api_key=key)
-        result=client.models.generate_content(model="gemini-1.5-flash",contents=prompt)
+        result=client.models.generate_content(model="gemini-3.8-flash",contents=prompt)
         return result.text or "AI কোনো লেখা ফেরত দেয়নি।"
     except Exception as e:
         return f"Gemini request ব্যর্থ: {e}. API key, model access ও quota পরীক্ষা করুন।"
