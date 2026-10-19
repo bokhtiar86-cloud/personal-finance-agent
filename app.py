@@ -67,7 +67,7 @@ hr{border-color:#26374a}
 """, unsafe_allow_html=True)
 
 def money(n):
-    return f"৳{float(n):,.2f}"
+    return f"BDT {float(n):,.2f}"
 
 def normalize(df):
     if df is None or df.empty:
@@ -83,13 +83,13 @@ def normalize(df):
                 break
     df=df.rename(columns=rename)
     if "amount" not in df.columns:
-        raise ValueError("The CSV must contain an 'amount' (or 'value'/'total') column.")
+        raise ValueError("The CSV must contain an amount (or value/total) column.")
     if "date" not in df: df["date"]=date.today().isoformat()
     if "description" not in df: df["description"]="Imported transaction"
     if "category" not in df: df["category"]="Other"
     if "type" not in df: df["type"]="Expense"
     df["date"]=pd.to_datetime(df["date"],errors="coerce").dt.date
-    df["amount"]=pd.to_numeric(df["amount"].astype(str).str.replace(",","",regex=False).str.replace("৳","",regex=False),errors="coerce")
+    df["amount"]=pd.to_numeric(df["amount"].astype(str).str.replace(",","",regex=False).str.replace("BDT ","",regex=False),errors="coerce")
     df["type"]=df["type"].astype(str).str.strip().str.lower().map({"income":"Income","in":"Income","salary":"Income","earning":"Income","expense":"Expense","expenses":"Expense","out":"Expense","spending":"Expense"}).fillna("Expense")
     df["description"]=df["description"].fillna("Transaction").astype(str)
     df["category"]=df["category"].fillna("Other").astype(str)
@@ -113,7 +113,7 @@ def generate_with_fallback(client, prompt):
         return result.text or "The AI did not return any text. Please try again."
     except Exception as exc:
         return (
-            "Gemini could not respond right now. Please try again in a moment. "
+            "Gemini could not respond. Please try again in a moment. "
             "If this keeps happening, check your API key, model access, and quota in Google AI Studio. "
             f"Error: {str(exc)[:250]}"
         )
@@ -121,9 +121,9 @@ def generate_with_fallback(client, prompt):
 def ai_insights(df,budget,month):
     key=api_key()
     if not key:
-        return "No API key found. Add GEMINI_API_KEY under Streamlit Cloud → Settings → Secrets."
+        return 'API key not found. Add GEMINI_API_KEY in Streamlit Cloud → Settings → Secrets.'
     if genai is None:
-        return "The google-genai package is not installed. Please check requirements.txt."
+        return "The google-genai package is not installed. Check requirements.txt."
     x=df.copy()
     if not x.empty:
         x["date"]=pd.to_datetime(x["date"],errors="coerce")
@@ -136,15 +136,15 @@ def ai_insights(df,budget,month):
         client=genai.Client(api_key=key)
         return generate_with_fallback(client, prompt)
     except Exception as e:
-        return f"Gemini request failed: {e}. Please check your API key, model access, and quota."
+        return f"Gemini request failed: {e}. check the API key, model access, and quota."
 
 def ai_chat_answer(df, budget, month, question, history):
     """Answer a user's question using only the selected month's financial totals."""
     key = api_key()
     if not key:
-        return "No API key found. Add GEMINI_API_KEY under Streamlit Cloud → Settings → Secrets."
+        return "API key not found. Add GEMINI_API_KEY in Streamlit Cloud → Settings → Secrets."
     if genai is None:
-        return "The google-genai package is not installed. Please check requirements.txt."
+        return "The google-genai package is not installed. Check requirements.txt."
 
     x = df.copy()
     if not x.empty:
@@ -176,7 +176,7 @@ USER'S NEW QUESTION: {question}"""
         client = genai.Client(api_key=key)
         return generate_with_fallback(client, prompt)
     except Exception as e:
-        return f"Gemini request failed: {e}. Please try again in a moment and check your API key/model access."
+        return f"Gemini request failed: {e}. Please try again and check the API key and model access."
 
 if "transactions" not in st.session_state:
     st.session_state.transactions=pd.DataFrame(columns=["date","description","category","type","amount"])
@@ -189,9 +189,9 @@ with st.sidebar:
     st.caption("PERSONAL FINANCE AGENT")
     chosen=st.date_input("Select month",value=date.today().replace(day=1))
     month=chosen.strftime("%Y-%m")
-    st.session_state.budget=st.number_input("Monthly expense budget (৳)",min_value=0.0,value=float(st.session_state.budget),step=500.0)
+    st.session_state.budget=st.number_input("Monthly expense budget (BDT )",min_value=0.0,value=float(st.session_state.budget),step=500.0)
     st.markdown("---")
-    st.caption("Do not include personal account/card details in the CSV.")
+    st.caption("Do not include personal account or card information in the CSV.")
 
 st.markdown(f'<div class="hero"><div class="eyebrow">YOUR MONEY, IN FOCUS</div><h1>Personal Finance Dashboard</h1><p>Track cash flow, understand spending, and make confident money decisions · {month}</p></div>',unsafe_allow_html=True)
 
@@ -226,9 +226,9 @@ with overview:
         st.subheader("Monthly budget")
         st.progress(min(max(used/100,0),1) if budget else 0)
         st.write(f"**{used:.1f}% used** · {money(expense)} of {money(budget)}")
-        if budget and expense>budget: st.error(f"Budget exceeded by {money(expense-budget)}.")
-        elif budget: st.success(f"{money(left)} remaining within budget.")
-        else: st.info("Set a budget from the sidebar.")
+        if budget and expense>budget: st.error(f"Budget exceeded by {money(expense-budget)}।")
+        elif budget: st.success(f"Remaining within budget: {money(left)}।")
+        else: st.info("Set a budget in the sidebar.")
         st.subheader("Spending by category")
         expenses=mtx[mtx.type=="Expense"] if not mtx.empty else mtx
         if not expenses.empty:
@@ -236,7 +236,7 @@ with overview:
             pie=px.pie(cats,names="category",values="amount",hole=.62,template="plotly_dark",color_discrete_sequence=px.colors.sequential.Teal)
             pie.update_layout(paper_bgcolor="rgba(0,0,0,0)",margin=dict(l=0,r=0,t=5,b=0))
             st.plotly_chart(pie,use_container_width=True)
-        else: st.info("The category chart will appear once you add expenses.")
+        else: st.info("Add expenses to see the category chart.")
     st.subheader("Recent transactions")
     if mtx.empty: st.info("Add a transaction in the Transactions tab or import a CSV.")
     else:
@@ -257,7 +257,7 @@ with transactions:
             category=st.selectbox("Category",["Food","Transport","Housing","Bills","Shopping","Health","Education","Salary","Freelance","Savings","Other"])
         submit=st.form_submit_button("＋ Add transaction",use_container_width=True)
         if submit:
-            if not desc.strip() or amount<=0: st.error("Please enter a description and an amount greater than zero.")
+            if not desc.strip() or amount<=0: st.error("Enter a description and an amount greater than zero.")
             else:
                 row=pd.DataFrame([{"date":txdate,"description":desc.strip(),"category":category,"type":typ,"amount":amount}])
                 st.session_state.transactions=pd.concat([st.session_state.transactions,row],ignore_index=True)
@@ -265,8 +265,8 @@ with transactions:
                 st.rerun()
     st.divider()
     st.subheader("Transaction history")
-    st.caption("In this version transactions live in the session; they may not persist after the app restarts.")
-    if alltx.empty: st.info("No transactions yet.")
+    st.caption("In this version, transactions are stored in the session and may not persist after the app restarts.")
+    if alltx.empty: st.info("There are no transactions yet.")
     else:
         edited=st.data_editor(alltx,use_container_width=True,hide_index=True,num_rows="dynamic",column_config={"type":st.column_config.SelectboxColumn("Type",options=["Income","Expense"]),"amount":st.column_config.NumberColumn("Amount (BDT)",min_value=0.0)})
         if st.button("Save transaction changes"):
@@ -278,8 +278,8 @@ with transactions:
         st.download_button("⬇ Download transaction CSV",data=alltx.to_csv(index=False).encode("utf-8-sig"),file_name=f"transactions-{month}.csv",mime="text/csv")
 
 with ai:
-    st.subheader("AI financial coach")
-    st.caption("Only monthly income totals, expense totals, and category totals are sent to Gemini; transaction descriptions are never sent.")
+    st.subheader("AI Financial Coach")
+    st.caption("Only monthly income totals, expense totals, and category totals are sent to Gemini; transaction descriptions are not sent.")
     if st.button("✨ Generate AI insights",type="primary"):
         with st.spinner("Generating financial summary..."):
             st.session_state.insights=ai_insights(alltx,budget,month)
@@ -302,18 +302,18 @@ with ai:
     if st.session_state.get("robot_welcome", False):
         st.info("Welcome to our new innovation! I'm your Team 7 robot. Ask me anything about your income, expenses, or budget.")
     st.subheader("💬 Ask Team 7")
-    st.write("Type any question about your income and expenses. For example: How much budget do I have left? Or: Which category has the highest spending?")
-    st.caption("Privacy: only the selected month's total income, total expenses, budget, and category totals are sent in chat. Transaction descriptions are not sent.")
+    st.write("Ask any question about your income and expenses. For example: How much of my budget is left? Or which category has the highest spending?")
+    st.caption("Privacy: Only the selected month’s total income, total expenses, budget, and category totals are sent in chat. Transaction descriptions are not sent.")
     for message in st.session_state.chat_messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
-    question = st.chat_input("Type your question here…")
+    question = st.chat_input("Type your question here...")
     if question:
         st.session_state.chat_messages.append({"role": "user", "content": question})
         with st.chat_message("user"):
             st.markdown(question)
         with st.chat_message("assistant"):
-            with st.spinner("Team 7 is preparing an answer..."):
+            with st.spinner("Team 7 is preparing a response..."):
                 answer = ai_chat_answer(alltx, budget, month, question, st.session_state.chat_messages[:-1])
             st.markdown(answer)
         st.session_state.chat_messages.append({"role": "assistant", "content": answer})
@@ -323,7 +323,7 @@ with ai:
 
 with csvtab:
     st.subheader("Import transactions from CSV")
-    st.write("Suggested columns: `date, description, category, type, amount`. The `amount` column is required.")
+    st.write("Recommended columns: `date, description, category, type, amount`. The `amount` column is required.")
     template=pd.DataFrame([{"date":date.today().isoformat(),"description":"Monthly salary","category":"Salary","type":"Income","amount":30000},{"date":date.today().isoformat(),"description":"Groceries","category":"Food","type":"Expense","amount":2500}])
     st.download_button("⬇ Download sample CSV",data=template.to_csv(index=False).encode("utf-8-sig"),file_name="finance-template.csv",mime="text/csv")
     uploaded=st.file_uploader("Choose a CSV file",type=["csv"])
@@ -331,16 +331,16 @@ with csvtab:
     if uploaded:
         try:
             incoming=normalize(pd.read_csv(uploaded))
-            st.write(f"Found {len(incoming)} valid transaction(s)")
+            st.write(f"{len(incoming)} valid transaction(s) found")
             st.dataframe(incoming.head(10),use_container_width=True,hide_index=True)
             if st.button("Import transactions",type="primary"):
                 if mode.startswith("Replace"):
                     st.session_state.transactions=incoming
                 else:
                     st.session_state.transactions=pd.concat([st.session_state.transactions,incoming],ignore_index=True)
-                st.success("CSV imported.")
+                st.success("CSV imported successfully.")
                 st.rerun()
-        except Exception as e: st.error(f"Could not read the CSV: {e}")
+        except Exception as e: st.error(f"Error reading CSV: {e}")
 
 st.divider()
 st.caption("Team 7 · Personal Finance Agent · Streamlit + Gemini")
