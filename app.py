@@ -20,6 +20,12 @@ st.set_page_config(page_title="Team 7 | Personal Finance", page_icon="💹", lay
 
 st.markdown("""
 <style>
+/* Universal fix for all inputs and text fields */
+input, textarea, select, [data-baseweb="input"] * {
+    color: #111827 !important;
+    background-color: #ffffff !important;
+    -webkit-text-fill-color: #111827 !important;
+}
 .stTextInput input, 
 .stNumberInput input, 
 .stDateInput input, 
