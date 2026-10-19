@@ -20,7 +20,69 @@ st.set_page_config(page_title="Team 7 | Personal Finance", page_icon="💹", lay
 
 st.markdown("""
 <style>
+/* Improve text visibility in Live mode */
+.stApp,
+.stApp p,
+.stApp label,
+.stApp .stMarkdown,
+.stApp [data-testid="stCaptionContainer"] {
+    color: #e5edf7 !important;
+}
 
+/* Keep input fields readable */
+.stTextInput input,
+.stNumberInput input,
+.stTextArea textarea,
+.stChatInput textarea,
+[data-baseweb="input"] input,
+[data-baseweb="textarea"] textarea {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+    caret-color: #111827 !important;
+}
+
+/* Select boxes and dropdowns */
+[data-baseweb="select"] > div {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+[data-baseweb="select"] input,
+[data-baseweb="select"] span {
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+}
+
+/* Dropdown options */
+[data-baseweb="popover"],
+[data-baseweb="menu"],
+[role="listbox"],
+[role="option"] {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+[role="option"] * {
+    color: #111827 !important;
+}
+
+/* Tabs */
+[data-testid="stTabs"] button {
+    color: #e5edf7 !important;
+}
+
+/* Transaction table */
+[data-testid="stDataFrame"],
+[data-testid="stDataEditor"] {
+    color: #111827 !important;
+}
+
+/* Buttons */
+.stButton button,
+.stDownloadButton button {
+    color: #111827;
+}
 .stTextInput input, 
 .stNumberInput input, 
 .stDateInput input, 
