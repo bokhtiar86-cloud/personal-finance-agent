@@ -94,7 +94,7 @@ def api_key():
 
 def generate_with_fallback(client, prompt):
     try:
-        result = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+        result = client.models.generate_content(model="gemini-3.8-flash", contents=prompt)
         return result.text or "The AI did not return any text. Please try again."
     except Exception as exc:
         return f"Gemini could not respond. Check your API key, model access, and quota. Details: {str(exc)[:250]}"
