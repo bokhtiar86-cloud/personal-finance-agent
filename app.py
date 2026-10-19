@@ -20,28 +20,6 @@ st.set_page_config(page_title="Team 7 | Personal Finance", page_icon="💹", lay
 
 st.markdown("""
 <style>
-/* Color and background styling for inputs in both dark and light modes */
-@media (prefers-color-scheme: dark) {
-    /* Dark mode input styles */
-    .stTextInput input, .stNumberInput input, .stDateInput input, [data-baseweb="input"] input {
-        color: #111827 !important;
-        background-color: #ffffff !important;
-    }
-}
-
-@media (prefers-color-scheme: light) {
-    /* Light mode input styles to prevent invisible text or background */
-    .stTextInput input, .stNumberInput input, .stDateInput input, [data-baseweb="input"] input {
-        color: #111827 !important;
-        background-color: #ffffff !important;
-        -webkit-text-fill-color: #111827 !important;
-    }
-    
-    /* Keep sidebar and other text clear and legible in light mode */
-    .hero h1, .hero p, .mlabel, .mvalue {
-        color: #0f172a !important;
-    }
-}
 .stTextInput input, 
 .stNumberInput input, 
 .stDateInput input, 
