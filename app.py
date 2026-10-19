@@ -1,4 +1,6 @@
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
 import pandas as pd
@@ -119,6 +121,17 @@ st.markdown("""
 @keyframes robotFloat { 0%,100% {transform:translateY(0) rotate(-1deg)} 50% {transform:translateY(-8px) rotate(1deg)} }
 @keyframes robotWave { 0%,100% {transform:rotate(8deg)} 50% {transform:rotate(-18deg)} }
 @keyframes robotBlink { 0%,45%,50%,100% {transform:scaleY(1)} 47% {transform:scaleY(.12)} }
+/* Faster, more expressive movement while Team 7 is thinking */
+@keyframes robotThinkFloat {0%,100%{transform:translateY(0) rotate(-3deg)}25%{transform:translateY(-10px) rotate(3deg)}50%{transform:translateY(-3px) rotate(-2deg)}75%{transform:translateY(-12px) rotate(2deg)}}
+@keyframes robotThinkArm {0%,100%{transform:rotate(8deg)}25%{transform:rotate(-48deg)}50%{transform:rotate(24deg)}75%{transform:rotate(-35deg)}}
+@keyframes robotThinkEyes {0%,100%{transform:scaleY(1);filter:brightness(1)}35%{transform:scaleY(.35);filter:brightness(1.8)}65%{transform:scaleY(1.25);filter:brightness(1.5)}}
+@keyframes thinkingPulse {0%,100%{opacity:.45;transform:scale(.94)}50%{opacity:1;transform:scale(1.04)}}
+.team7-thinking .team7-robot{animation:robotThinkFloat .85s ease-in-out infinite}
+.team7-thinking .robot-arm{animation:robotThinkArm .65s ease-in-out infinite}
+.team7-thinking .robot-eye{animation:robotThinkEyes .75s ease-in-out infinite}
+.team7-thinking .robot-antenna:before{animation:thinkingPulse .7s ease-in-out infinite}
+.team7-thinking .robot-copy small{color:#6ee7c1;font-weight:700}
+.team7-thinking-wrap{margin:8px 0;padding:10px 14px;border:1px solid rgba(52,211,153,.5);border-radius:16px;background:linear-gradient(110deg,rgba(15,54,62,.75),rgba(17,34,54,.9));}
 .team7-robot-wrap {display:flex;align-items:center;gap:18px;padding:16px 20px;margin:8px 0 14px;border:1px solid #2b5260;border-radius:20px;background:linear-gradient(110deg,rgba(15,54,62,.9),rgba(17,34,54,.92));}
 .team7-robot {position:relative;width:90px;height:96px;flex:0 0 90px;animation:robotFloat 3.2s ease-in-out infinite;}
 .robot-antenna {position:absolute;left:43px;top:0;width:4px;height:15px;background:#9caec2;border-radius:4px}
@@ -130,7 +143,6 @@ st.markdown("""
 .robot-body:after {content:'★';position:absolute;left:15px;top:1px;color:#173447;font-size:13px}
 .robot-arm {position:absolute;right:-2px;top:68px;width:19px;height:7px;border-radius:6px;background:#d79a43;transform-origin:3px 4px;animation:robotWave 1.8s ease-in-out infinite}
 .robot-copy {color:#e5edf7;font-size:1rem;font-weight:700}.robot-copy small {display:block;color:#a9c3d0;font-size:.84rem;font-weight:400;margin-top:4px}
-@media (prefers-reduced-motion: reduce) {.team7-robot,.robot-arm,.robot-eye {animation:none !important}}
 .hero {animation:team7FadeUp .65s ease-out both, team7Glow 5s ease-in-out 1s infinite}
 .metric {animation:team7FadeUp .55s ease-out both; transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
 div[data-testid="column"]:nth-child(1) .metric {animation-delay:.06s}
@@ -142,7 +154,6 @@ div[data-testid="column"]:nth-child(4) .metric {animation-delay:.30s}
 .stButton>button:hover,.stDownloadButton>button:hover {transform:translateY(-2px);box-shadow:0 7px 18px rgba(52,211,153,.18);border-color:#34d399}
 [data-testid="stTabs"] button {transition:color .18s ease,background-color .18s ease}
 [data-testid="stAlert"],div[data-testid="stForm"],div[data-testid="stChatMessage"] {animation:team7FadeUp .35s ease-out both}
-@media (prefers-reduced-motion: reduce) { *,*::before,*::after {animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important} }
 [data-testid="stSidebar"]{background:#091525;border-right:1px solid #26374a}
 .block-container{max-width:1450px;padding-top:1.5rem}
 .hero{padding:1.5rem;border:1px solid #294154;border-radius:22px;background:linear-gradient(110deg,#10362f,#13243a 65%,#102033);margin-bottom:1rem}
@@ -586,8 +597,54 @@ with ai:
         with st.chat_message("user"):
             st.markdown(question)
         with st.chat_message("assistant"):
-            with st.spinner("Team 7 is preparing a response..."):
-                answer = ai_chat_answer(alltx, budget, month, question, st.session_state.chat_messages[:-1])
+            # This animated robot is rendered before the Gemini call and stays moving
+            # until the call finishes; then it is replaced by the actual answer.
+            thinking_placeholder = st.empty()
+            thinking_placeholder.markdown("""
+            <div class="team7-thinking-wrap">
+              <div class="team7-robot-wrap team7-thinking" style="margin:0;border:0;background:transparent;padding:8px 4px">
+                <div class="team7-robot" aria-label="Team 7 is thinking">
+                  <div class="robot-antenna"></div>
+                  <div class="robot-head"><div class="robot-face"><span class="robot-eye"></span><span class="robot-eye"></span></div></div>
+                  <div class="robot-body"></div><div class="robot-arm"></div>
+                </div>
+                <div class="robot-copy">Team 7 is thinking... 💭<small>Reading your question and preparing an answer</small></div>
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
+            # Run Gemini in a background thread so Streamlit can keep the thinking
+            # animation visible while the network request is still in progress.
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    ai_chat_answer,
+                    alltx,
+                    budget,
+                    month,
+                    question,
+                    st.session_state.chat_messages[:-1],
+                )
+                started = time.monotonic()
+                while not future.done():
+                    elapsed = int(time.monotonic() - started)
+                    dots = "." * (1 + (elapsed % 3))
+                    thinking_placeholder.markdown(f"""
+                    <div class="team7-thinking-wrap">
+                      <div class="team7-robot-wrap team7-thinking" style="margin:0;border:0;background:transparent;padding:8px 4px">
+                        <div class="team7-robot" aria-label="Team 7 is thinking">
+                          <div class="robot-antenna"></div>
+                          <div class="robot-head"><div class="robot-face"><span class="robot-eye"></span><span class="robot-eye"></span></div></div>
+                          <div class="robot-body"></div><div class="robot-arm"></div>
+                        </div>
+                        <div class="robot-copy">Team 7 is thinking{dots} 💭<small>Reading your question and preparing an answer · {elapsed}s</small></div>
+                      </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    time.sleep(0.12)
+                try:
+                    answer = future.result()
+                except Exception as e:
+                    answer = f"Sorry, I couldn't prepare a response: {e}"
+            thinking_placeholder.empty()
             st.markdown(answer)
         st.session_state.chat_messages.append({"role": "assistant", "content": answer})
     if st.session_state.chat_messages and st.button("Clear chat"):
