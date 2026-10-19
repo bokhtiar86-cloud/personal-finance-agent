@@ -24,7 +24,7 @@ expenses, and monthly budgets.
 4. Run: streamlit run app.py
 Deployment Instructions
 
-The Finora Personal Finance Agent is deployed using Streamlit Community Cloud.
+The Team 7 Personal Finance Agent is deployed using Streamlit Community Cloud.
 
 Deployment Steps
 
