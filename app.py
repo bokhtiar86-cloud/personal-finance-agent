@@ -312,7 +312,7 @@ def ai_chat_answer(df, budget, month, question, history):
     conversation = "\n".join(
         f"{item['role'].upper()}: {item['content']}" for item in history[-8:]
     )
-   prompt = f"""You are Team 7, a friendly AI assistant and personal
+    prompt = f"""You are Team 7, a friendly AI assistant and personal
 finance coach.
 
 YOUR JOB:
