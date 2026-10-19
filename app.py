@@ -310,7 +310,7 @@ with transactions:
                 st.success("Transaction added.")
                 st.rerun()
     st.divider()
-  st.subheader("Transaction history")
+    st.subheader("Transaction history")
     st.caption("Edit cells directly, then save. Select rows to delete.")
 
     if st.session_state.transactions.empty:
