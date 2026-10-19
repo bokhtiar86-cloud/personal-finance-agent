@@ -83,7 +83,7 @@ def normalize(df):
                 break
     df=df.rename(columns=rename)
     if "amount" not in df.columns:
-        raise ValueError("CSV-তে amount (বা value/total) কলাম থাকতে হবে।")
+        raise ValueError("The CSV must contain an 'amount' (or 'value'/'total') column.")
     if "date" not in df: df["date"]=date.today().isoformat()
     if "description" not in df: df["description"]="Imported transaction"
     if "category" not in df: df["category"]="Other"
@@ -110,20 +110,20 @@ def generate_with_fallback(client, prompt):
             model="gemini-3.5-flash-lite",
             contents=prompt,
         )
-        return result.text or "AI কোনো লেখা ফেরত দেয়নি। আবার চেষ্টা করুন।"
+        return result.text or "The AI did not return any text. Please try again."
     except Exception as exc:
         return (
-            "Gemini এখন উত্তর দিতে পারেনি। কিছুক্ষণ পর আবার চেষ্টা করুন। "
-            "যদি বারবার হয়, Google AI Studio-তে API key, model access ও quota পরীক্ষা করুন। "
-            f"ত্রুটি: {str(exc)[:250]}"
+            "Gemini could not respond right now. Please try again in a moment. "
+            "If this keeps happening, check your API key, model access, and quota in Google AI Studio. "
+            f"Error: {str(exc)[:250]}"
         )
 
 def ai_insights(df,budget,month):
     key=api_key()
     if not key:
-        return 'API key পাওয়া যায়নি। Streamlit Cloud → Settings → Secrets-এ GEMINI_API_KEY যোগ করুন।'
+        return "No API key found. Add GEMINI_API_KEY under Streamlit Cloud → Settings → Secrets."
     if genai is None:
-        return "google-genai প্যাকেজ ইনস্টল নেই। requirements.txt পরীক্ষা করুন।"
+        return "The google-genai package is not installed. Please check requirements.txt."
     x=df.copy()
     if not x.empty:
         x["date"]=pd.to_datetime(x["date"],errors="coerce")
@@ -136,15 +136,15 @@ def ai_insights(df,budget,month):
         client=genai.Client(api_key=key)
         return generate_with_fallback(client, prompt)
     except Exception as e:
-        return f"Gemini request ব্যর্থ: {e}. API key, model access ও quota পরীক্ষা করুন।"
+        return f"Gemini request failed: {e}. Please check your API key, model access, and quota."
 
 def ai_chat_answer(df, budget, month, question, history):
     """Answer a user's question using only the selected month's financial totals."""
     key = api_key()
     if not key:
-        return "API key পাওয়া যায়নি। Streamlit Cloud → Settings → Secrets-এ GEMINI_API_KEY যোগ করুন।"
+        return "No API key found. Add GEMINI_API_KEY under Streamlit Cloud → Settings → Secrets."
     if genai is None:
-        return "google-genai প্যাকেজ ইনস্টল নেই। requirements.txt পরীক্ষা করুন।"
+        return "The google-genai package is not installed. Please check requirements.txt."
 
     x = df.copy()
     if not x.empty:
@@ -164,7 +164,7 @@ def ai_chat_answer(df, budget, month, question, history):
     conversation = "\n".join(
         f"{item['role'].upper()}: {item['content']}" for item in history[-8:]
     )
-    prompt = f"""You are Team 7, a careful personal finance coach. Answer the user's question in clear, simple language. Use only the financial facts below; never invent transactions or numbers. If the data cannot answer a question, say so. Currency is Bangladeshi taka (BDT).
+    prompt = f"""You are Team 7, a friendly animated robot and careful personal finance coach. Start only the first greeting of a new conversation with: "Welcome to our new innovation! I'm your Team 7 robot. Ask me anything about your income, expenses, or budget." Do not repeat the welcome in every reply. Answer the user's question in clear, simple language. Use only the financial facts below; never invent transactions or numbers. If the data cannot answer a question, say so. Currency is Bangladeshi taka (BDT).
 
 Financial facts: {context}
 
@@ -176,7 +176,7 @@ USER'S NEW QUESTION: {question}"""
         client = genai.Client(api_key=key)
         return generate_with_fallback(client, prompt)
     except Exception as e:
-        return f"Gemini request ব্যর্থ: {e}. কিছুক্ষণ পর আবার চেষ্টা করুন এবং API key/model access পরীক্ষা করুন।"
+        return f"Gemini request failed: {e}. Please try again in a moment and check your API key/model access."
 
 if "transactions" not in st.session_state:
     st.session_state.transactions=pd.DataFrame(columns=["date","description","category","type","amount"])
@@ -187,11 +187,11 @@ if "chat_messages" not in st.session_state: st.session_state.chat_messages=[]
 with st.sidebar:
     st.markdown("## 💹 Team 7")
     st.caption("PERSONAL FINANCE AGENT")
-    chosen=st.date_input("মাস নির্বাচন করুন",value=date.today().replace(day=1))
+    chosen=st.date_input("Select month",value=date.today().replace(day=1))
     month=chosen.strftime("%Y-%m")
     st.session_state.budget=st.number_input("Monthly expense budget (৳)",min_value=0.0,value=float(st.session_state.budget),step=500.0)
     st.markdown("---")
-    st.caption("CSV-তে ব্যক্তিগত account/card তথ্য রাখবেন না।")
+    st.caption("Do not include personal account/card details in the CSV.")
 
 st.markdown(f'<div class="hero"><div class="eyebrow">YOUR MONEY, IN FOCUS</div><h1>Personal Finance Dashboard</h1><p>Track cash flow, understand spending, and make confident money decisions · {month}</p></div>',unsafe_allow_html=True)
 
@@ -226,9 +226,9 @@ with overview:
         st.subheader("Monthly budget")
         st.progress(min(max(used/100,0),1) if budget else 0)
         st.write(f"**{used:.1f}% used** · {money(expense)} of {money(budget)}")
-        if budget and expense>budget: st.error(f"Budget ছাড়িয়েছে {money(expense-budget)}।")
-        elif budget: st.success(f"Budget-এর মধ্যে বাকি {money(left)}।")
-        else: st.info("Sidebar থেকে budget নির্ধারণ করুন।")
+        if budget and expense>budget: st.error(f"Budget exceeded by {money(expense-budget)}.")
+        elif budget: st.success(f"{money(left)} remaining within budget.")
+        else: st.info("Set a budget from the sidebar.")
         st.subheader("Spending by category")
         expenses=mtx[mtx.type=="Expense"] if not mtx.empty else mtx
         if not expenses.empty:
@@ -236,9 +236,9 @@ with overview:
             pie=px.pie(cats,names="category",values="amount",hole=.62,template="plotly_dark",color_discrete_sequence=px.colors.sequential.Teal)
             pie.update_layout(paper_bgcolor="rgba(0,0,0,0)",margin=dict(l=0,r=0,t=5,b=0))
             st.plotly_chart(pie,use_container_width=True)
-        else: st.info("খরচ যোগ করলে category chart দেখা যাবে।")
+        else: st.info("The category chart will appear once you add expenses.")
     st.subheader("Recent transactions")
-    if mtx.empty: st.info("Transactions tab-এ transaction যোগ করুন বা CSV import করুন।")
+    if mtx.empty: st.info("Add a transaction in the Transactions tab or import a CSV.")
     else:
         recent=mtx.sort_values("date",ascending=False).head(5).copy()
         recent["date"]=recent["date"].astype(str)
@@ -257,34 +257,34 @@ with transactions:
             category=st.selectbox("Category",["Food","Transport","Housing","Bills","Shopping","Health","Education","Salary","Freelance","Savings","Other"])
         submit=st.form_submit_button("＋ Add transaction",use_container_width=True)
         if submit:
-            if not desc.strip() or amount<=0: st.error("Description দিন এবং amount শূন্যের বেশি দিন।")
+            if not desc.strip() or amount<=0: st.error("Please enter a description and an amount greater than zero.")
             else:
                 row=pd.DataFrame([{"date":txdate,"description":desc.strip(),"category":category,"type":typ,"amount":amount}])
                 st.session_state.transactions=pd.concat([st.session_state.transactions,row],ignore_index=True)
-                st.success("Transaction যোগ হয়েছে।")
+                st.success("Transaction added.")
                 st.rerun()
     st.divider()
     st.subheader("Transaction history")
-    st.caption("এই সংস্করণে transaction session-এ থাকে; app restart হলে স্থায়ীভাবে সংরক্ষিত নাও থাকতে পারে।")
-    if alltx.empty: st.info("এখনও transaction নেই।")
+    st.caption("In this version transactions live in the session; they may not persist after the app restarts.")
+    if alltx.empty: st.info("No transactions yet.")
     else:
         edited=st.data_editor(alltx,use_container_width=True,hide_index=True,num_rows="dynamic",column_config={"type":st.column_config.SelectboxColumn("Type",options=["Income","Expense"]),"amount":st.column_config.NumberColumn("Amount (BDT)",min_value=0.0)})
         if st.button("Save transaction changes"):
             try:
                 st.session_state.transactions=normalize(edited)
-                st.success("Transaction আপডেট হয়েছে।")
+                st.success("Transactions updated.")
                 st.rerun()
             except Exception as e: st.error(str(e))
         st.download_button("⬇ Download transaction CSV",data=alltx.to_csv(index=False).encode("utf-8-sig"),file_name=f"transactions-{month}.csv",mime="text/csv")
 
 with ai:
     st.subheader("AI financial coach")
-    st.caption("Gemini-তে শুধু মাসিক মোট আয়, খরচ এবং category totals পাঠানো হয়; transaction description পাঠানো হয় না।")
+    st.caption("Only monthly income totals, expense totals, and category totals are sent to Gemini; transaction descriptions are never sent.")
     if st.button("✨ Generate AI insights",type="primary"):
-        with st.spinner("Financial summary তৈরি হচ্ছে..."):
+        with st.spinner("Generating financial summary..."):
             st.session_state.insights=ai_insights(alltx,budget,month)
     if st.session_state.insights: st.markdown(st.session_state.insights)
-    else: st.info("AI insight তৈরি করতে বাটনে চাপুন।")
+    else: st.info("Click the button to generate AI insights.")
 
     st.divider()
     st.markdown("""
@@ -294,49 +294,53 @@ with ai:
         <div class="robot-head"><div class="robot-face"><span class="robot-eye"></span><span class="robot-eye"></span></div></div>
         <div class="robot-body"></div><div class="robot-arm"></div>
       </div>
-      <div class="robot-copy">Hi! I'm your Team 7 robot 🤖<small>আমি স্বাধীন বোকাচোদার এআই সংস্করণ—আপনার আয়-ব্যয় নিয়ে প্রশ্ন করুন নিচে।</small></div>
+      <div class="robot-copy">Welcome to our new innovation! 🤖<small>I'm the Team 7 robot. Ask me about your income, expenses, or budget.</small></div>
     </div>
     """, unsafe_allow_html=True)
+    if st.button("🤖 Talk to Team 7", type="primary", key="talk_to_team7"):
+        st.session_state.robot_welcome = True
+    if st.session_state.get("robot_welcome", False):
+        st.info("Welcome to our new innovation! I'm your Team 7 robot. Ask me anything about your income, expenses, or budget.")
     st.subheader("💬 Ask Team 7")
-    st.write("আপনার আয়-ব্যয় সম্পর্কে নিজের মতো প্রশ্ন লিখুন। যেমন: আমার বাজেট কত বাকি? বা কোন খাতে খরচ বেশি?")
-    st.caption("গোপনীয়তা: চ্যাটে শুধু নির্বাচিত মাসের মোট আয়, মোট খরচ, বাজেট ও category totals পাঠানো হয়। লেনদেনের বিবরণ পাঠানো হয় না।")
+    st.write("Type any question about your income and expenses. For example: How much budget do I have left? Or: Which category has the highest spending?")
+    st.caption("Privacy: only the selected month's total income, total expenses, budget, and category totals are sent in chat. Transaction descriptions are not sent.")
     for message in st.session_state.chat_messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
-    question = st.chat_input("এখানে আপনার প্রশ্ন লিখুন…")
+    question = st.chat_input("Type your question here…")
     if question:
         st.session_state.chat_messages.append({"role": "user", "content": question})
         with st.chat_message("user"):
             st.markdown(question)
         with st.chat_message("assistant"):
-            with st.spinner("Team 7 উত্তর তৈরি করছে..."):
+            with st.spinner("Team 7 is preparing an answer..."):
                 answer = ai_chat_answer(alltx, budget, month, question, st.session_state.chat_messages[:-1])
             st.markdown(answer)
         st.session_state.chat_messages.append({"role": "assistant", "content": answer})
-    if st.session_state.chat_messages and st.button("চ্যাট মুছে ফেলুন"):
+    if st.session_state.chat_messages and st.button("Clear chat"):
         st.session_state.chat_messages=[]
         st.rerun()
 
 with csvtab:
     st.subheader("Import transactions from CSV")
-    st.write("প্রস্তাবিত columns: `date, description, category, type, amount`. `amount` অবশ্যই থাকতে হবে।")
+    st.write("Suggested columns: `date, description, category, type, amount`. The `amount` column is required.")
     template=pd.DataFrame([{"date":date.today().isoformat(),"description":"Monthly salary","category":"Salary","type":"Income","amount":30000},{"date":date.today().isoformat(),"description":"Groceries","category":"Food","type":"Expense","amount":2500}])
     st.download_button("⬇ Download sample CSV",data=template.to_csv(index=False).encode("utf-8-sig"),file_name="finance-template.csv",mime="text/csv")
-    uploaded=st.file_uploader("CSV file বেছে নিন",type=["csv"])
+    uploaded=st.file_uploader("Choose a CSV file",type=["csv"])
     mode=st.radio("Import method",["Replace current transactions","Append to current transactions"],horizontal=True)
     if uploaded:
         try:
             incoming=normalize(pd.read_csv(uploaded))
-            st.write(f"{len(incoming)} valid transaction(s) পাওয়া গেছে")
+            st.write(f"Found {len(incoming)} valid transaction(s)")
             st.dataframe(incoming.head(10),use_container_width=True,hide_index=True)
             if st.button("Import transactions",type="primary"):
                 if mode.startswith("Replace"):
                     st.session_state.transactions=incoming
                 else:
                     st.session_state.transactions=pd.concat([st.session_state.transactions,incoming],ignore_index=True)
-                st.success("CSV import হয়েছে।")
+                st.success("CSV imported.")
                 st.rerun()
-        except Exception as e: st.error(f"CSV পড়তে সমস্যা: {e}")
+        except Exception as e: st.error(f"Could not read the CSV: {e}")
 
 st.divider()
 st.caption("Team 7 · Personal Finance Agent · Streamlit + Gemini")
