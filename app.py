@@ -216,7 +216,13 @@ with st.sidebar:
     st.caption("PERSONAL FINANCE AGENT")
     chosen=st.date_input("Select month",value=date.today().replace(day=1))
     month=chosen.strftime("%Y-%m")
-    st.session_state.budget=st.number_input("Monthly expense budget (USD )",min_value=0.0,value=float(st.session_state.budget),step=10.0)
+    st.session_state.budget=st.number_input(
+    "Monthly expense budget (USD)",
+    min_value=0.0,
+    step=10.0,
+    format="%.2f",
+    key="budget",
+)
     st.markdown("---")
     st.caption("Do not include personal account or card information in the CSV.")
 
