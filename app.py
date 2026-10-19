@@ -377,7 +377,7 @@ USER'S NEW QUESTION: {question}
 try:
         client = genai.Client(api_key=key)
         return generate_with_fallback(client, prompt)
-    except Exception as e:
+except Exception as e:
         return f"Gemini request failed: {e}. Please try again and check the API key and model access."
 
 if "transactions" not in st.session_state:
