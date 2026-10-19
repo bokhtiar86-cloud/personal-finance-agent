@@ -108,7 +108,15 @@ def normalize(df):
     if "category" not in df: df["category"]="Other"
     if "type" not in df: df["type"]="Expense"
     df["date"]=pd.to_datetime(df["date"],errors="coerce").dt.date
-    df["amount"]=pd.to_numeric(df["amount"].astype(str).str.replace(",","",regex=False).str.replace("BDT ","",regex=False),errors="coerce")
+    df["amount"] = pd.to_numeric(
+    df["amount"]
+    .astype(str)
+    .str.replace(",", "", regex=False)
+    .str.replace("BDT ", "", regex=False)
+    .str.replace("$", "", regex=False)
+    .str.strip(),
+    errors="coerce",
+)
     df["type"]=df["type"].astype(str).str.strip().str.lower().map({"income":"Income","in":"Income","salary":"Income","earning":"Income","expense":"Expense","expenses":"Expense","out":"Expense","spending":"Expense"}).fillna("Expense")
     df["description"]=df["description"].fillna("Transaction").astype(str)
     df["category"]=df["category"].fillna("Other").astype(str)
@@ -150,7 +158,7 @@ def ai_insights(df,budget,month):
     inc=float(x.loc[x.type=="Income","amount"].sum()) if not x.empty else 0
     exp=float(x.loc[x.type=="Expense","amount"].sum()) if not x.empty else 0
     cats=x[x.type=="Expense"].groupby("category").amount.sum().sort_values(ascending=False).head(8).to_dict() if not x.empty else {}
-    prompt=f"""Act as a careful personal finance coach. In simple English, summarize the user's monthly finances and give 3 practical actions. Currency BDT. Month: {month}; income: {inc}; expenses: {exp}; net cash flow: {inc-exp}; expense budget: {budget}; expense categories: {cats}. Use only these aggregates, do not invent data."""
+    prompt=f"""Act as a careful personal finance coach. In simple English, summarize the user's monthly finances and give 3 practical actions. Currency USD ($). Month: {month}; income: {inc}; expenses: {exp}; net cash flow: {inc-exp}; expense budget: {budget}; expense categories: {cats}. Use only these aggregates, do not invent data."""
     try:
         client=genai.Client(api_key=key)
         return generate_with_fallback(client, prompt)
@@ -176,14 +184,14 @@ def ai_chat_answer(df, budget, month, question, history):
 
     # Send financial totals and category totals only; transaction descriptions are not sent.
     context = (
-        f"Selected month: {month}; currency: BDT; total income: {income:.2f}; "
+        f"Selected month: {month}; currency: USD ($); total income: {income:.2f}; "
         f"total expenses: {expenses:.2f}; net cash flow: {income-expenses:.2f}; "
         f"monthly expense budget: {budget:.2f}; expenses by category: {categories}."
     )
     conversation = "\n".join(
         f"{item['role'].upper()}: {item['content']}" for item in history[-8:]
     )
-    prompt = f"""You are Team 7, a friendly animated robot and careful personal finance coach. Start only the first greeting of a new conversation with: "Welcome to our new innovation! I'm your Team 7 robot. Ask me anything about your income, expenses, or budget." Do not repeat the welcome in every reply. Answer the user's question in clear, simple language. Use only the financial facts below; never invent transactions or numbers. If the data cannot answer a question, say so. Currency is Bangladeshi taka (BDT).
+    prompt = f"""You are Team 7, a friendly animated robot and careful personal finance coach. Start only the first greeting of a new conversation with: "Welcome to our new innovation! I'm your Team 7 robot. Ask me anything about your income, expenses, or budget." Do not repeat the welcome in every reply. Answer the user's question in clear, simple language. Use only the financial facts below; never invent transactions or numbers. If the data cannot answer a question, say so Currency is US dollars (USD). Display all monetary amounts with the $ symbol.
 
 Financial facts: {context}
 
