@@ -20,6 +20,25 @@ st.set_page_config(page_title="Team 7 | Personal Finance", page_icon="💹", lay
 
 st.markdown("""
 <style>
+/* Make input text clearly visible */
+.stTextInput input,
+.stNumberInput input,
+.stTextArea textarea,
+.stChatInput textarea,
+[data-baseweb="input"] input,
+[data-baseweb="textarea"] textarea {
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+    background-color: #ffffff !important;
+    caret-color: #111827 !important;
+}
+
+.stChatInput textarea::placeholder,
+.stTextInput input::placeholder,
+[data-baseweb="textarea"] textarea::placeholder {
+    color: #64748b !important;
+    opacity: 1 !important;
+}
 .stApp {background: radial-gradient(circle at 10% 0%, #12342f 0, transparent 28%), linear-gradient(135deg,#07111f,#0b1424 55%,#0a1020); color:#e5edf7}
 /* Gentle motion effects: no extra packages required */
 @keyframes team7FadeUp { from {opacity:0; transform:translateY(14px)} to {opacity:1; transform:translateY(0)} }
