@@ -310,18 +310,79 @@ with transactions:
                 st.success("Transaction added.")
                 st.rerun()
     st.divider()
-    st.subheader("Transaction history")
-    st.caption("In this version, transactions are stored in the session and may not persist after the app restarts.")
-    if alltx.empty: st.info("There are no transactions yet.")
+  st.subheader("Transaction history")
+    st.caption("Edit cells directly, then save. Select rows to delete.")
+
+    if st.session_state.transactions.empty:
+        st.info("There are no transactions yet.")
     else:
-        edited=st.data_editor(alltx,use_container_width=True,hide_index=True,num_rows="dynamic",column_config={"type":st.column_config.SelectboxColumn("Type",options=["Income","Expense"]),"amount":st.column_config.NumberColumn("Amount (USD)",min_value=0.0)})
-        if st.button("Save transaction changes"):
-            try:
-                st.session_state.transactions=normalize(edited)
-                st.success("Transactions updated.")
-                st.rerun()
-            except Exception as e: st.error(str(e))
-        st.download_button("⬇ Download transaction CSV",data=alltx.to_csv(index=False).encode("utf-8-sig"),file_name=f"transactions-{month}.csv",mime="text/csv")
+        tx = st.session_state.transactions.copy().reset_index(drop=True)
+        tx.insert(0, "Select", False)
+
+        edited = st.data_editor(
+            tx,
+            use_container_width=True,
+            hide_index=True,
+            num_rows="fixed",
+            key="transaction_history_editor",
+            column_config={
+                "Select": st.column_config.CheckboxColumn("Select"),
+                "date": st.column_config.DateColumn("Date"),
+                "description": st.column_config.TextColumn("Description"),
+                "category": st.column_config.SelectboxColumn(
+                    "Category",
+                    options=[
+                        "Food", "Transport", "Housing", "Bills",
+                        "Shopping", "Health", "Education", "Salary",
+                        "Freelance", "Savings", "Other"
+                    ],
+                ),
+                "type": st.column_config.SelectboxColumn(
+                    "Type", options=["Income", "Expense"]
+                ),
+                "amount": st.column_config.NumberColumn(
+                    "Amount (USD)", min_value=0.0, format="%.2f"
+                ),
+            },
+        )
+
+        save_col, delete_col = st.columns(2)
+
+        with save_col:
+            if st.button("💾 Save edits", key="save_tx_edits"):
+                try:
+                    saved = normalize(edited.drop(columns=["Select"]))
+                    st.session_state.transactions = saved
+                    st.session_state.insights = ""
+                    st.session_state.chat_messages = []
+                    st.success("Transactions updated.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Could not save: {e}")
+
+        with delete_col:
+            if st.button("🗑️ Delete selected", key="delete_tx_rows"):
+                selected = edited["Select"].fillna(False).astype(bool)
+
+                if selected.any():
+                    st.session_state.transactions = (
+                        edited.loc[~selected]
+                        .drop(columns=["Select"])
+                        .pipe(normalize)
+                        .reset_index(drop=True)
+                    )
+                    st.session_state.insights = ""
+                    st.session_state.chat_messages = []
+                    st.rerun()
+                else:
+                    st.warning("Please select at least one transaction.")
+
+        st.download_button(
+            "⬇ Download updated CSV",
+            data=st.session_state.transactions.to_csv(index=False).encode("utf-8-sig"),
+            file_name="transactions.csv",
+            mime="text/csv",
+        )
 
 with ai:
     st.subheader("AI Financial Coach")
