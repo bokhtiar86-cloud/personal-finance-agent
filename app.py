@@ -86,7 +86,7 @@ hr{border-color:#26374a}
 """, unsafe_allow_html=True)
 
 def money(n):
-    return f"BDT {float(n):,.2f}"
+    return f"$ {float(n):,.2f}"
 
 def normalize(df):
     if df is None or df.empty:
