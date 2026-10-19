@@ -20,6 +20,15 @@ st.set_page_config(page_title="Team 7 | Personal Finance", page_icon="💹", lay
 
 st.markdown("""
 <style>
+.stTextInput input, 
+.stNumberInput input, 
+.stDateInput input, 
+[data-baseweb="input"] input {
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 0 0px 1000px #ffffff inset !important;
+}
 /* Make input text clearly visible */
 .stTextInput input,
 .stNumberInput input,
