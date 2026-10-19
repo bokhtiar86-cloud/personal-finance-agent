@@ -374,7 +374,7 @@ Recent conversation:
 
 USER'S NEW QUESTION: {question}
 """
-    try:
+try:
         client = genai.Client(api_key=key)
         return generate_with_fallback(client, prompt)
     except Exception as e:
