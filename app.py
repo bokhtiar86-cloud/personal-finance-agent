@@ -86,7 +86,7 @@ hr{border-color:#26374a}
 """, unsafe_allow_html=True)
 
 def money(n):
-    return f"BDT {float(n):,.2f}"
+    return f"$ {float(n):,.2f}"
 
 def normalize(df):
     if df is None or df.empty:
@@ -199,7 +199,7 @@ USER'S NEW QUESTION: {question}"""
 
 if "transactions" not in st.session_state:
     st.session_state.transactions=pd.DataFrame(columns=["date","description","category","type","amount"])
-if "budget" not in st.session_state: st.session_state.budget=15000.0
+if "budget" not in st.session_state: st.session_state.budget=150.0
 if "insights" not in st.session_state: st.session_state.insights=""
 if "chat_messages" not in st.session_state: st.session_state.chat_messages=[]
 
@@ -208,7 +208,7 @@ with st.sidebar:
     st.caption("PERSONAL FINANCE AGENT")
     chosen=st.date_input("Select month",value=date.today().replace(day=1))
     month=chosen.strftime("%Y-%m")
-    st.session_state.budget=st.number_input("Monthly expense budget (BDT )",min_value=0.0,value=float(st.session_state.budget),step=500.0)
+    st.session_state.budget=st.number_input("Monthly expense budget (USD )",min_value=0.0,value=float(st.session_state.budget),step=10.0)
     st.markdown("---")
     st.caption("Do not include personal account or card information in the CSV.")
 
@@ -239,7 +239,7 @@ with overview:
         st.subheader("Income vs. expenses")
         cash=pd.DataFrame({"Type":["Income","Expense"],"Amount":[income,expense]})
         fig=px.bar(cash,x="Type",y="Amount",color="Type",color_discrete_map={"Income":"#34d399","Expense":"#fb7185"},template="plotly_dark",text_auto=",.0f")
-        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",margin=dict(l=5,r=5,t=10,b=5),showlegend=False,xaxis_title="",yaxis_title="Amount (BDT)")
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",margin=dict(l=5,r=5,t=10,b=5),showlegend=False,xaxis_title="",yaxis_title="Amount (USD)")
         st.plotly_chart(fig,use_container_width=True)
     with b:
         st.subheader("Monthly budget")
@@ -272,7 +272,7 @@ with transactions:
             desc=st.text_input("Description",placeholder="e.g. Salary, groceries")
             typ=st.selectbox("Type",["Expense","Income"])
         with c2:
-            amount=st.number_input("Amount (BDT)",min_value=0.0,step=100.0)
+            amount=st.number_input("Amount (USD)",min_value=0.0,step=10.0)
             category=st.selectbox("Category",["Food","Transport","Housing","Bills","Shopping","Health","Education","Salary","Freelance","Savings","Other"])
         submit=st.form_submit_button("＋ Add transaction",use_container_width=True)
         if submit:
@@ -287,7 +287,7 @@ with transactions:
     st.caption("In this version, transactions are stored in the session and may not persist after the app restarts.")
     if alltx.empty: st.info("There are no transactions yet.")
     else:
-        edited=st.data_editor(alltx,use_container_width=True,hide_index=True,num_rows="dynamic",column_config={"type":st.column_config.SelectboxColumn("Type",options=["Income","Expense"]),"amount":st.column_config.NumberColumn("Amount (BDT)",min_value=0.0)})
+        edited=st.data_editor(alltx,use_container_width=True,hide_index=True,num_rows="dynamic",column_config={"type":st.column_config.SelectboxColumn("Type",options=["Income","Expense"]),"amount":st.column_config.NumberColumn("Amount (USD)",min_value=0.0)})
         if st.button("Save transaction changes"):
             try:
                 st.session_state.transactions=normalize(edited)
