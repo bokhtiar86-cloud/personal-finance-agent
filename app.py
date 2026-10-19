@@ -115,6 +115,12 @@ hr{border-color:#26374a}
 .stTextInput label, .stNumberInput label, .stSelectbox label, .stDateInput label {
     color: #f8fafc !important;
 }
+/* Make text inside the date input visible */
+[data-testid="stDateInput"] input,
+[data-baseweb="input"] input {
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
