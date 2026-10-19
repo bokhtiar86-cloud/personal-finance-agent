@@ -366,14 +366,6 @@ Answer the question directly. Provide a calculation, explanation,
 or practical advice as appropriate. If information is missing,
 give a useful example and ask a short follow-up question."""
 
-prompt = f"""
-Financial facts: {context}
-
-Recent conversation:
-{conversation}
-
-USER'S NEW QUESTION: {question}
-"""
     try:
         client = genai.Client(api_key=key)
         return generate_with_fallback(client, prompt)
