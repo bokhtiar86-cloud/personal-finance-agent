@@ -95,6 +95,26 @@ hr{border-color:#26374a}
     background-color: #059669 !important;
     border-color: #6ee7b7 !important;
 }
+/* Make all text and captions in the sidebar clearly visible */
+[data-testid="stSidebar"] *, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span, [data-testid="stSidebar"] label, [data-testid="stSidebar"] .stCaption {
+    color: #f8fafc !important;
+}
+
+/* Fix text color for top tabs */
+[data-testid="stTabs"] button {
+    color: #cbd5e1 !important;
+    font-weight: 600 !important;
+}
+
+/* Color for the selected or active tab */
+[data-testid="stTabs"] button[aria-selected="true"] {
+    color: #34d399 !important;
+}
+
+/* Keep form labels and general text clear and legible */
+.stTextInput label, .stNumberInput label, .stSelectbox label, .stDateInput label {
+    color: #f8fafc !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
