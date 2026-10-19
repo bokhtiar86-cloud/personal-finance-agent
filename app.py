@@ -112,7 +112,7 @@ def normalize(df):
     df["amount"]
     .astype(str)
     .str.replace(",", "", regex=False)
-    .str.replace("BDT ", "", regex=False)
+    .str.replace("USD ", "", regex=False)
     .str.replace("$", "", regex=False)
     .str.strip(),
     errors="coerce",
