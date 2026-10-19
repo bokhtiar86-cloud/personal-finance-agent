@@ -82,6 +82,19 @@ div[data-testid="column"]:nth-child(4) .metric {animation-delay:.30s}
 div[data-testid="stForm"]{border:1px solid #26374a;border-radius:16px;padding:1rem}
 .stButton>button,.stDownloadButton>button{border-radius:10px;font-weight:700;min-height:2.6rem}
 hr{border-color:#26374a}
+/* Ensure button text and background are always visible */
+.stButton>button, .stDownloadButton>button {
+    color: #ffffff !important;
+    background-color: #10b981 !important;
+    border: 1px solid #34d399 !important;
+}
+
+/* Button hover state color */
+.stButton>button:hover, .stDownloadButton>button:hover {
+    color: #ffffff !important;
+    background-color: #059669 !important;
+    border-color: #6ee7b7 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
