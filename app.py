@@ -121,6 +121,16 @@ hr{border-color:#26374a}
     color: #111827 !important;
     -webkit-text-fill-color: #111827 !important;
 }
+/* Fix date input and calendar popup text and background visibility */
+[data-baseweb="calendar"] *, 
+[data-testid="stDateInput"] input,
+div[data-baseweb="popover"] * {
+    color: #111827 !important;
+}
+
+[data-baseweb="calendar"], div[data-baseweb="popover"] {
+    background-color: #ffffff !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
