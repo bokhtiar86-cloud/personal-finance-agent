@@ -430,7 +430,7 @@ with ai:
 
 with csvtab:
     st.subheader("Import transactions from CSV")
-    st.write("Recommended columns: `date, description, category, type, amount`. The amount column is required.")
+    st.write("Recommended columns: date, description, category, type, amount. The amount column is required.")
     template=pd.DataFrame([{"date":date.today().isoformat(),"description":"Monthly salary","category":"Salary","type":"Income","amount":30000},{"date":date.today().isoformat(),"description":"Groceries","category":"Food","type":"Expense","amount":2500}])
     st.download_button("⬇ Download sample CSV",data=template.to_csv(index=False).encode("utf-8-sig"),file_name="finance-template.csv",mime="text/csv")
     uploaded=st.file_uploader("Choose a CSV file",type=["csv"])
