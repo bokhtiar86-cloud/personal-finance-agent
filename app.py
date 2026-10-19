@@ -280,8 +280,21 @@ with transactions:
             desc=st.text_input("Description",placeholder="e.g. Salary, groceries")
             typ=st.selectbox("Type",["Expense","Income"])
         with c2:
-          amount=st.number_input("Amount (USD)",min_value=0.0,step=10.0)
-            category=st.selectbox("Category",["Food","Transport","Housing","Bills","Shopping","Health","Education","Salary","Freelance","Savings","Other"])
+            amount = st.number_input(
+                "Amount (USD)",
+                min_value=0.0,
+                step=10.0,
+                format="%.2f",
+                key="transaction_amount_input",
+            )
+            category = st.selectbox(
+                "Category",
+                [
+                    "Food", "Transport", "Housing", "Bills",
+                    "Shopping", "Health", "Education", "Salary",
+                    "Freelance", "Savings", "Other"
+                ]
+            )
         submit=st.form_submit_button("＋ Add transaction",use_container_width=True)
         if submit:
             if not desc.strip() or amount<=0: st.error("Enter a description and an amount greater than zero.")
